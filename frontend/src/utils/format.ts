@@ -16,23 +16,22 @@ export function shortNumber(value: number) {
 
 export function severityClass(severity?: string) {
   return clsx(
-    "border",
-    severity === "critical" && "border-red-400/40 bg-red-500/15 text-red-200",
-    severity === "high" && "border-orange-400/40 bg-orange-500/15 text-orange-200",
-    severity === "medium" && "border-amber-400/40 bg-amber-500/15 text-amber-100",
-    severity === "low" && "border-emerald-400/40 bg-emerald-500/15 text-emerald-100",
-    !severity && "border-zinc-600 bg-zinc-800 text-zinc-200",
+    "border shadow-clay-pill font-semibold tracking-wide backdrop-blur-md",
+    severity === "critical" && "border-rose-400/50 bg-gradient-to-r from-rose-500/25 to-red-600/30 text-rose-200",
+    severity === "high" && "border-amber-400/50 bg-gradient-to-r from-amber-500/25 to-orange-600/30 text-amber-200",
+    severity === "medium" && "border-sky-400/50 bg-gradient-to-r from-sky-500/25 to-blue-600/30 text-sky-200",
+    severity === "low" && "border-emerald-400/50 bg-gradient-to-r from-emerald-500/25 to-teal-600/30 text-emerald-200",
+    !severity && "border-zinc-500/40 bg-zinc-800/40 text-zinc-300",
   );
 }
 
 export function statusClass(status?: string) {
   return clsx(
-    "border",
-    status === "open" && "border-red-400/40 bg-red-500/15 text-red-200",
-    status === "investigating" && "border-cyan-400/40 bg-cyan-500/15 text-cyan-100",
-    status === "resolved" && "border-emerald-400/40 bg-emerald-500/15 text-emerald-100",
-    status === "false_positive" && "border-zinc-500/40 bg-zinc-700/40 text-zinc-200",
-    !status && "border-zinc-600 bg-zinc-800 text-zinc-200",
+    "border shadow-clay-pill font-semibold tracking-wide backdrop-blur-md",
+    status === "open" && "border-rose-400/50 bg-rose-500/20 text-rose-200",
+    status === "investigating" && "border-purple-400/50 bg-purple-500/20 text-purple-200",
+    status === "resolved" && "border-emerald-400/50 bg-emerald-500/20 text-emerald-200",
+    status === "false_positive" && "border-zinc-500/40 bg-zinc-800/40 text-zinc-300",
+    !status && "border-zinc-500/40 bg-zinc-800/40 text-zinc-300",
   );
 }
-

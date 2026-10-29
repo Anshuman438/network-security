@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "Mini SIEM Dashboard"
+    app_name: str = "Spectre"
     api_prefix: str = "/api"
     environment: str = "development"
     database_url: str = "postgresql+psycopg://siem:siem@localhost:5432/mini_siem"

@@ -27,14 +27,15 @@ export function AlertsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border border-surface-border bg-surface-raised p-4">
+    <div className="space-y-5">
+      {/* Claymorphic Filter Panel */}
+      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent p-5 shadow-clay-card backdrop-blur-2xl">
         <div className="grid gap-3 md:grid-cols-[minmax(180px,1.5fr)_repeat(4,minmax(120px,1fr))]">
           <label className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
+            <Search className="absolute left-3.5 top-3 h-4 w-4 text-zinc-400" />
             <input
-              className="focus-ring w-full rounded-lg border border-surface-border bg-surface-inset py-2 pl-9 pr-3 text-sm"
-              placeholder="Search alerts"
+              className="focus-ring w-full rounded-2xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white shadow-inner placeholder:text-zinc-500"
+              placeholder="Search alerts..."
               value={filters.q}
               onChange={(event) => setFilters((current) => ({ ...current, q: event.target.value }))}
             />
@@ -46,7 +47,13 @@ export function AlertsPage() {
         </div>
       </div>
 
-      {loading ? <LoadingState label="Loading alerts" /> : data && data.items.length > 0 ? <AlertsTable alerts={data.items} onSelect={openDetail} /> : <EmptyState title="No alerts found" />}
+      {loading ? (
+        <LoadingState label="Loading alerts" />
+      ) : data && data.items.length > 0 ? (
+        <AlertsTable alerts={data.items} onSelect={openDetail} />
+      ) : (
+        <EmptyState title="No alerts found" />
+      )}
 
       {detail ? <AlertDrawer detail={detail} onClose={() => setDetail(null)} onRefresh={async () => setDetail(await fetchAlert(detail.id))} /> : null}
     </div>
@@ -55,37 +62,66 @@ export function AlertsPage() {
 
 function AlertsTable({ alerts, onSelect }: { alerts: Alert[]; onSelect: (alert: Alert) => void }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-surface-border bg-surface-raised">
+    <div className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent shadow-clay-card backdrop-blur-2xl">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[920px] text-left text-sm">
-          <thead className="bg-surface-inset text-xs uppercase text-zinc-500">
+          <thead className="border-b border-white/10 bg-white/5 text-xs uppercase font-bold text-zinc-300">
             <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Severity</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Source</th>
-              <th className="px-4 py-3">User</th>
-              <th className="px-4 py-3">Events</th>
-              <th className="px-4 py-3">Last seen</th>
-              <th className="px-4 py-3"></th>
+              <th className="px-5 py-4">Title</th>
+              <th className="px-5 py-4">Severity</th>
+              <th className="px-5 py-4">Status</th>
+              <th className="px-5 py-4">Source IP</th>
+              <th className="px-5 py-4">Target User</th>
+              <th className="px-5 py-4">Events</th>
+              <th className="px-5 py-4">Last Seen</th>
+              <th className="px-5 py-4 text-right">Inspect</th>
             </tr>
           </thead>
-          <tbody>
-            {alerts.map((alert) => (
-              <tr key={alert.id} className="border-t border-surface-border hover:bg-surface-inset/70">
-                <td className="max-w-sm px-4 py-3 text-zinc-200">{alert.title}</td>
-                <td className="px-4 py-3">
+          <tbody className="divide-y divide-white/5 text-zinc-200">
+            {alerts.map((alert, idx) => (
+              <tr
+                key={alert.id}
+                className={`transition-colors hover:bg-white/10 ${
+                  idx % 2 === 0 ? "bg-white/[0.02]" : "bg-transparent"
+                }`}
+              >
+                <td className="max-w-sm px-5 py-3.5 font-medium text-white">{alert.title}</td>
+                <td className="px-5 py-3.5">
                   <SeverityBadge value={alert.severity} />
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-5 py-3.5">
                   <StatusBadge value={alert.status} />
                 </td>
-                <td className="px-4 py-3 font-mono text-xs text-zinc-300">{alert.source_ip ?? "-"}</td>
-                <td className="px-4 py-3 text-zinc-300">{alert.affected_user ?? "-"}</td>
-                <td className="px-4 py-3 text-zinc-300">{alert.event_count}</td>
-                <td className="px-4 py-3 text-zinc-400">{formatDate(alert.last_seen)}</td>
-                <td className="px-4 py-3 text-right">
-                  <button className="focus-ring rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100" onClick={() => onSelect(alert)}>
+                <td className="px-5 py-3.5 font-mono text-xs">
+                  {alert.source_ip ? (
+                    <span className="rounded-lg border border-cyan-400/30 bg-cyan-500/10 px-2.5 py-1 font-semibold text-cyan-300 shadow-clay-pill">
+                      {alert.source_ip}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500">-</span>
+                  )}
+                </td>
+                <td className="px-5 py-3.5">
+                  {alert.affected_user ? (
+                    <span className="rounded-lg border border-purple-400/30 bg-purple-500/10 px-2.5 py-1 font-mono text-xs font-semibold text-purple-300 shadow-clay-pill">
+                      {alert.affected_user}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-500">-</span>
+                  )}
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-xs font-bold text-emerald-300 shadow-clay-pill">
+                    {alert.event_count}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5 font-mono text-xs text-zinc-300">{formatDate(alert.last_seen)}</td>
+                <td className="px-5 py-3.5 text-right">
+                  <button
+                    className="clay-button p-2 text-zinc-200 hover:text-white"
+                    onClick={() => onSelect(alert)}
+                    title="View Investigation Details"
+                  >
                     <FileText className="h-4 w-4" />
                   </button>
                 </td>
@@ -119,27 +155,31 @@ function AlertDrawer({ detail, onClose, onRefresh }: { detail: AlertDetail; onCl
   }
 
   return (
-    <div className="fixed inset-0 z-40 bg-black/70">
-      <aside className="ml-auto flex h-full w-full max-w-3xl flex-col border-l border-surface-border bg-surface-base shadow-glow">
-        <div className="flex items-start justify-between gap-4 border-b border-surface-border px-5 py-4">
+    <div className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm">
+      <aside className="ml-auto flex h-full w-full max-w-3xl flex-col border-l border-white/10 bg-zinc-950/90 shadow-2xl backdrop-blur-2xl">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-6 py-5">
           <div className="space-y-2">
-            <h2 className="text-lg font-semibold text-zinc-50">{detail.title}</h2>
+            <h2 className="text-xl font-bold text-white">{detail.title}</h2>
             <div className="flex flex-wrap gap-2">
               <SeverityBadge value={detail.severity} />
               <StatusBadge value={detail.status} />
             </div>
           </div>
-          <button className="focus-ring rounded-lg p-2 text-zinc-400 hover:bg-surface-inset hover:text-zinc-100" onClick={onClose}>
+          <button className="clay-button p-2 text-zinc-400 hover:text-white" onClick={onClose}>
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex-1 space-y-6 overflow-y-auto p-5">
-          <p className="rounded-lg border border-surface-border bg-surface-raised p-3 text-sm text-zinc-300">{detail.description}</p>
+        <div className="flex-1 space-y-6 overflow-y-auto p-6">
+          <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-zinc-200 shadow-clay-pill">{detail.description}</p>
 
           {canInvestigate ? (
             <div className="flex flex-wrap gap-2">
               {(["open", "investigating", "resolved", "false_positive"] as AlertStatus[]).map((status) => (
-                <button key={status} className="focus-ring rounded-lg border border-surface-border bg-surface-raised px-3 py-2 text-sm capitalize text-zinc-200 hover:bg-surface-inset" onClick={() => changeStatus(status)}>
+                <button
+                  key={status}
+                  className="clay-button px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-zinc-200 hover:text-white"
+                  onClick={() => changeStatus(status)}
+                >
                   {status.replace("_", " ")}
                 </button>
               ))}
@@ -147,16 +187,18 @@ function AlertDrawer({ detail, onClose, onRefresh }: { detail: AlertDetail; onCl
           ) : null}
 
           <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-100">
-              <CheckCircle2 className="h-4 w-4 text-cyan-200" />
-              Timeline
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white">
+              <CheckCircle2 className="h-4 w-4 text-cyan-400" />
+              Event Timeline
             </h3>
             <div className="space-y-3">
               {detail.related_events.slice(0, 12).map((event) => (
-                <div key={event.id} className="rounded-lg border border-surface-border bg-surface-raised p-3">
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500">
-                    <span>{formatDate(event.timestamp)}</span>
-                    <span>{event.source_ip ?? "-"}</span>
+                <div key={event.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-clay-card">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-mono text-zinc-400">
+                    <span className="text-cyan-300">{formatDate(event.timestamp)}</span>
+                    <span>•</span>
+                    <span className="text-purple-300">{event.source_ip ?? "-"}</span>
+                    <span>•</span>
                     <SeverityBadge value={event.severity} />
                   </div>
                   <p className="mt-2 text-sm text-zinc-200">{event.message}</p>
@@ -166,28 +208,39 @@ function AlertDrawer({ detail, onClose, onRefresh }: { detail: AlertDetail; onCl
           </section>
 
           <section>
-            <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-zinc-100">
-              <MessageSquarePlus className="h-4 w-4 text-emerald-200" />
-              Analyst notes
+            <h3 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-white">
+              <MessageSquarePlus className="h-4 w-4 text-purple-400" />
+              Analyst Investigation Notes
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {detail.notes.map((item) => (
-                <div key={item.id} className="rounded-lg border border-surface-border bg-surface-raised p-3 text-sm text-zinc-300">
-                  <div className="mb-1 text-xs text-zinc-500">
-                    {item.user?.username ?? "analyst"} - {formatDate(item.created_at)}
+                <div key={item.id} className="rounded-2xl border border-white/10 bg-white/5 p-4 shadow-clay-card">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-purple-300">{item.user?.username ?? "Analyst"}</span>
+                    <span className="font-mono text-zinc-400">{formatDate(item.created_at)}</span>
                   </div>
-                  {item.note}
+                  <p className="mt-2 text-sm text-zinc-200">{item.note}</p>
                 </div>
               ))}
-              {canInvestigate ? (
-                <div className="flex gap-2">
-                  <textarea className="focus-ring min-h-20 flex-1 rounded-lg border border-surface-border bg-surface-inset px-3 py-2 text-sm" value={note} onChange={(event) => setNote(event.target.value)} />
-                  <button className="focus-ring rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-950 hover:bg-white" onClick={submitNote}>
-                    Add
-                  </button>
-                </div>
-              ) : null}
             </div>
+
+            {canInvestigate ? (
+              <div className="mt-4 space-y-3">
+                <textarea
+                  className="w-full rounded-2xl border border-white/10 bg-black/40 p-3.5 text-sm text-white shadow-inner placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-purple-400/50"
+                  rows={3}
+                  placeholder="Record an investigation finding or analyst note..."
+                  value={note}
+                  onChange={(event) => setNote(event.target.value)}
+                />
+                <button
+                  className="clay-button rounded-xl bg-gradient-to-r from-purple-500/30 to-indigo-500/30 px-4 py-2.5 text-sm font-semibold text-white"
+                  onClick={submitNote}
+                >
+                  Save Note
+                </button>
+              </div>
+            ) : null}
           </section>
         </div>
       </aside>
@@ -195,19 +248,35 @@ function AlertDrawer({ detail, onClose, onRefresh }: { detail: AlertDetail; onCl
   );
 }
 
-function Select({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {
+function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
   return (
-    <select className="focus-ring w-full rounded-lg border border-surface-border bg-surface-inset px-3 py-2 text-sm" value={value} onChange={(event) => onChange(event.target.value)}>
-      {options.map((option) => (
-        <option key={option || "all"} value={option}>
-          {option || label}
-        </option>
-      ))}
-    </select>
+    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1 block">{label}</span>
+      <select
+        className="w-full rounded-2xl border border-white/10 bg-zinc-900/90 py-2.5 px-3 text-sm text-white shadow-clay-pill focus:outline-none"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        {options.map((option) => (
+          <option key={option} value={option} className="bg-zinc-900 text-white">
+            {option ? option.replace("_", " ") : `All ${label}s`}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
 function Text({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
-  return <input className="focus-ring w-full rounded-lg border border-surface-border bg-surface-inset px-3 py-2 text-sm" placeholder={label} value={value} onChange={(event) => onChange(event.target.value)} />;
+  return (
+    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1 block">{label}</span>
+      <input
+        className="w-full rounded-2xl border border-white/10 bg-black/40 py-2.5 px-3 text-sm text-white shadow-inner placeholder:text-zinc-500 focus:outline-none"
+        placeholder={`Filter ${label}`}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
+  );
 }
-
