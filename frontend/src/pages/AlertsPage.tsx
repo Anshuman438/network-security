@@ -26,25 +26,62 @@ export function AlertsPage() {
     setDetail(await fetchAlert(alert.id));
   }
 
+  const hasActiveFilters = Boolean(
+    filters.q || filters.severity || filters.status || filters.source_ip || filters.username
+  );
+
+  function resetFilters() {
+    setFilters({ q: "", severity: "", status: "", source_ip: "", username: "" });
+  }
+
   return (
     <div className="space-y-5">
-      {/* Claymorphic Filter Panel */}
-      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent p-5 shadow-clay-card backdrop-blur-2xl">
-        <div className="grid gap-3 md:grid-cols-[minmax(180px,1.5fr)_repeat(4,minmax(120px,1fr))]">
-          <label className="relative">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-zinc-400" />
-            <input
-              className="focus-ring w-full rounded-2xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white shadow-inner placeholder:text-zinc-500"
-              placeholder="Search alerts..."
-              value={filters.q}
-              onChange={(event) => setFilters((current) => ({ ...current, q: event.target.value }))}
-            />
-          </label>
-          <Select value={filters.severity} onChange={(severity) => setFilters((current) => ({ ...current, severity }))} options={["", "critical", "high", "medium", "low"]} label="Severity" />
-          <Select value={filters.status} onChange={(status) => setFilters((current) => ({ ...current, status }))} options={["", "open", "investigating", "resolved", "false_positive"]} label="Status" />
-          <Text value={filters.source_ip} onChange={(source_ip) => setFilters((current) => ({ ...current, source_ip }))} label="Source IP" />
-          <Text value={filters.username} onChange={(username) => setFilters((current) => ({ ...current, username }))} label="Username" />
+      {/* Aligned Claymorphic Filter Bar */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent p-4 shadow-clay-card backdrop-blur-2xl">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 items-end">
+          <SearchFilter
+            label="Search"
+            placeholder="Search alerts..."
+            value={filters.q}
+            onChange={(q) => setFilters((current) => ({ ...current, q }))}
+          />
+          <Select
+            label="Severity"
+            value={filters.severity}
+            onChange={(severity) => setFilters((current) => ({ ...current, severity }))}
+            options={["", "critical", "high", "medium", "low"]}
+          />
+          <Select
+            label="Status"
+            value={filters.status}
+            onChange={(status) => setFilters((current) => ({ ...current, status }))}
+            options={["", "open", "investigating", "resolved", "false_positive"]}
+          />
+          <Text
+            label="Source IP"
+            placeholder="Filter Source IP"
+            value={filters.source_ip}
+            onChange={(source_ip) => setFilters((current) => ({ ...current, source_ip }))}
+          />
+          <Text
+            label="Target User"
+            placeholder="Filter Username"
+            value={filters.username}
+            onChange={(username) => setFilters((current) => ({ ...current, username }))}
+          />
         </div>
+
+        {hasActiveFilters && (
+          <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-xs text-zinc-400">
+            <span>Filtering active alerts</span>
+            <button
+              onClick={resetFilters}
+              className="text-xs font-semibold text-purple-300 hover:text-purple-200 transition underline underline-offset-2"
+            >
+              Reset all filters
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -248,18 +285,39 @@ function AlertDrawer({ detail, onClose, onRefresh }: { detail: AlertDetail; onCl
   );
 }
 
+function SearchFilter({ label, placeholder, value, onChange }: { label: string; placeholder: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1.5 block">{label}</span>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+        <input
+          className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-zinc-900/80 py-2 pl-10 pr-3 text-xs text-white placeholder:text-zinc-500 shadow-inner transition focus:border-purple-400/50"
+          placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
+    </label>
+  );
+}
+
 function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
   return (
-    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-      <span className="mb-1 block">{label}</span>
+    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1.5 block">{label}</span>
       <select
-        className="w-full rounded-2xl border border-white/10 bg-zinc-900/90 py-2.5 px-3 text-sm text-white shadow-clay-pill focus:outline-none"
+        className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3 text-xs text-white shadow-clay-pill transition focus:border-purple-400/50 cursor-pointer"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       >
         {options.map((option) => (
           <option key={option} value={option} className="bg-zinc-900 text-white">
-            {option ? option.replace("_", " ") : `All ${label}s`}
+            {option
+              ? option.replace("_", " ")
+              : label === "Severity"
+              ? "All Severities"
+              : `All ${label}s`}
           </option>
         ))}
       </select>
@@ -267,13 +325,13 @@ function Select({ label, value, onChange, options }: { label: string; value: str
   );
 }
 
-function Text({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function Text({ label, placeholder, value, onChange }: { label: string; placeholder?: string; value: string; onChange: (value: string) => void }) {
   return (
-    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-      <span className="mb-1 block">{label}</span>
+    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1.5 block">{label}</span>
       <input
-        className="w-full rounded-2xl border border-white/10 bg-black/40 py-2.5 px-3 text-sm text-white shadow-inner placeholder:text-zinc-500 focus:outline-none"
-        placeholder={`Filter ${label}`}
+        className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3 text-xs text-white placeholder:text-zinc-500 shadow-inner transition focus:border-purple-400/50"
+        placeholder={placeholder ?? `Filter ${label}`}
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />

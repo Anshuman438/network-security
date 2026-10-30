@@ -20,26 +20,68 @@ export function EventsPage() {
       .finally(() => setLoading(false));
   }, [filters]);
 
+  const hasActiveFilters = Boolean(
+    filters.q || filters.severity || filters.event_type || filters.source_ip || filters.username || filters.hostname
+  );
+
+  function resetFilters() {
+    setFilters({ q: "", severity: "", event_type: "", source_ip: "", username: "", hostname: "" });
+  }
+
   return (
     <div className="space-y-5">
-      {/* Claymorphic Filter Panel */}
-      <div className="rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent p-5 shadow-clay-card backdrop-blur-2xl">
-        <div className="grid gap-3 md:grid-cols-[minmax(180px,1.5fr)_repeat(5,minmax(120px,1fr))]">
-          <label className="relative">
-            <Search className="absolute left-3.5 top-3 h-4 w-4 text-zinc-400" />
-            <input
-              className="focus-ring w-full rounded-2xl border border-white/10 bg-black/40 py-2.5 pl-10 pr-3 text-sm text-white shadow-inner placeholder:text-zinc-500"
-              placeholder="Search raw logs..."
-              value={filters.q}
-              onChange={(event) => setFilters((current) => ({ ...current, q: event.target.value }))}
-            />
-          </label>
-          <FilterInput label="Severity" value={filters.severity} onChange={(value) => setFilters((current) => ({ ...current, severity: value }))} options={["", "critical", "high", "medium", "low"]} />
-          <FilterInput label="Type" value={filters.event_type} onChange={(value) => setFilters((current) => ({ ...current, event_type: value }))} options={["", "failed_login", "successful_login", "web_request", "http_404", "firewall_denied"]} />
-          <TextFilter label="Source IP" value={filters.source_ip} onChange={(value) => setFilters((current) => ({ ...current, source_ip: value }))} />
-          <TextFilter label="Username" value={filters.username} onChange={(value) => setFilters((current) => ({ ...current, username: value }))} />
-          <TextFilter label="Hostname" value={filters.hostname} onChange={(value) => setFilters((current) => ({ ...current, hostname: value }))} />
+      {/* Aligned Claymorphic Filter Bar */}
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-white/10 via-white/5 to-transparent p-4 shadow-clay-card backdrop-blur-2xl">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 items-end">
+          <SearchFilter
+            label="Search"
+            placeholder="Search raw logs..."
+            value={filters.q}
+            onChange={(q) => setFilters((current) => ({ ...current, q }))}
+          />
+          <FilterInput
+            label="Severity"
+            value={filters.severity}
+            onChange={(severity) => setFilters((current) => ({ ...current, severity }))}
+            options={["", "critical", "high", "medium", "low"]}
+          />
+          <FilterInput
+            label="Type"
+            value={filters.event_type}
+            onChange={(event_type) => setFilters((current) => ({ ...current, event_type }))}
+            options={["", "failed_login", "successful_login", "web_request", "http_404", "firewall_denied"]}
+          />
+          <TextFilter
+            label="Source IP"
+            placeholder="Filter Source IP"
+            value={filters.source_ip}
+            onChange={(source_ip) => setFilters((current) => ({ ...current, source_ip }))}
+          />
+          <TextFilter
+            label="Username"
+            placeholder="Filter Username"
+            value={filters.username}
+            onChange={(username) => setFilters((current) => ({ ...current, username }))}
+          />
+          <TextFilter
+            label="Hostname"
+            placeholder="Filter Hostname"
+            value={filters.hostname}
+            onChange={(hostname) => setFilters((current) => ({ ...current, hostname }))}
+          />
         </div>
+
+        {hasActiveFilters && (
+          <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2.5 text-xs text-zinc-400">
+            <span>Filtering active events</span>
+            <button
+              onClick={resetFilters}
+              className="text-xs font-semibold text-purple-300 hover:text-purple-200 transition underline underline-offset-2"
+            >
+              Reset all filters
+            </button>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -173,18 +215,39 @@ function EventDrawer({ event, onClose }: { event: NormalizedEvent; onClose: () =
   );
 }
 
+function SearchFilter({ label, placeholder, value, onChange }: { label: string; placeholder: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1.5 block">{label}</span>
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+        <input
+          className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-zinc-900/80 py-2 pl-10 pr-3 text-xs text-white placeholder:text-zinc-500 shadow-inner transition focus:border-purple-400/50"
+          placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
+    </label>
+  );
+}
+
 function FilterInput({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
   return (
-    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-      <span className="mb-1 block">{label}</span>
+    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1.5 block">{label}</span>
       <select
-        className="w-full rounded-2xl border border-white/10 bg-zinc-900/90 py-2.5 px-3 text-sm text-white shadow-clay-pill focus:outline-none"
+        className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3 text-xs text-white shadow-clay-pill transition focus:border-purple-400/50 cursor-pointer"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       >
         {options.map((option) => (
           <option key={option} value={option} className="bg-zinc-900 text-white">
-            {option ? option.replace("_", " ") : `All ${label}s`}
+            {option
+              ? option.replace("_", " ")
+              : label === "Severity"
+              ? "All Severities"
+              : `All ${label}s`}
           </option>
         ))}
       </select>
@@ -192,13 +255,13 @@ function FilterInput({ label, value, onChange, options }: { label: string; value
   );
 }
 
-function TextFilter({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+function TextFilter({ label, placeholder, value, onChange }: { label: string; placeholder?: string; value: string; onChange: (value: string) => void }) {
   return (
-    <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-      <span className="mb-1 block">{label}</span>
+    <label className="block text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+      <span className="mb-1.5 block">{label}</span>
       <input
-        className="w-full rounded-2xl border border-white/10 bg-black/40 py-2.5 px-3 text-sm text-white shadow-inner placeholder:text-zinc-500 focus:outline-none"
-        placeholder={`Filter ${label}`}
+        className="focus-ring h-10 w-full rounded-xl border border-white/10 bg-zinc-900/80 px-3 text-xs text-white placeholder:text-zinc-500 shadow-inner transition focus:border-purple-400/50"
+        placeholder={placeholder ?? `Filter ${label}`}
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
