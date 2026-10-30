@@ -1,4 +1,4 @@
-# Mini SIEM Dashboard
+# Spectre - Defensive SOC Dashboard
 
 A production-style, defensive Security Information and Event Management dashboard for a cybersecurity portfolio. It ingests safe simulated logs, normalizes them into a searchable event schema, evaluates detection rules, generates alerts, and presents the workflow in a modern SOC-style web app.
 
