@@ -1,17 +1,18 @@
 @echo off
 title Stop Spectre SOC
-echo ========================================================
-echo               SPECTRE - Stopping Local Services
-echo ========================================================
+color 0C
+echo ======================================================================
+echo                      SPECTRE - STOPPING SERVICES
+echo ======================================================================
 echo.
 
-echo Stopping uvicorn and python backend...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :8000') do taskkill /f /pid %%a 2>nul
+echo [*] Stopping backend processes on port 8000...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr /r ":8000\>"') do taskkill /f /pid %%a >nul 2>&1
 
-echo Stopping vite frontend...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5173') do taskkill /f /pid %%a 2>nul
+echo [*] Stopping frontend processes on port 5173...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr /r ":5173\>"') do taskkill /f /pid %%a >nul 2>&1
 
+echo [*] All Spectre services stopped.
+echo ======================================================================
 echo.
-echo All Spectre services stopped.
-echo ========================================================
-timeout /t 2 /nobreak >nul
+ping -n 3 127.0.0.1 >nul
