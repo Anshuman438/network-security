@@ -6,13 +6,13 @@ echo               Starting Local Services (No Docker)
 echo ========================================================
 echo.
 
-cd /d "%~dp0"
+set "ROOT_DIR=%~dp0"
 
 echo [1/3] Starting FastAPI Backend on http://localhost:8000 ...
-start "Spectre Backend" cmd /k "cd backend && .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
+start "Spectre Backend" /d "%ROOT_DIR%backend" cmd /k ".\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
 echo [2/3] Starting Vite React Frontend on http://localhost:5173 ...
-start "Spectre Frontend" cmd /k "cd frontend && npm run dev"
+start "Spectre Frontend" /d "%ROOT_DIR%frontend" cmd /k "npm run dev"
 
 echo [3/3] Opening Spectre SOC in your browser...
 timeout /t 3 /nobreak >nul
