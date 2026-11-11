@@ -1,7 +1,7 @@
 import json
 from functools import lru_cache
 from typing import Any
-from pydantic import Field, field_validator
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,23 +13,24 @@ class Settings(BaseSettings):
     jwt_secret_key: str = Field(default="change-me-in-production")
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 60 * 12
-    cors_origins: list[str] = ["*"]
+    cors_origins: Any = "*"
     max_upload_bytes: int = 2 * 1024 * 1024
     allowed_upload_extensions: set[str] = {".json", ".csv", ".txt", ".log"}
     auto_create_tables: bool = True
 
-    @field_validator("cors_origins", mode="before")
-    @classmethod
-    def parse_cors_origins(cls, value: Any) -> list[str]:
-        if isinstance(value, str):
-            value = value.strip()
-            if value.startswith("[") and value.endswith("]"):
+    def get_cors_origins(self) -> list[str]:
+        val = self.cors_origins
+        if isinstance(val, list):
+            return [str(x).strip() for x in val]
+        if isinstance(val, str):
+            s = val.strip()
+            if s.startswith("[") and s.endswith("]"):
                 try:
-                    return json.loads(value)
+                    return json.loads(s)
                 except Exception:
                     pass
-            return [origin.strip() for origin in value.split(",") if origin.strip()]
-        return value
+            return [x.strip() for x in s.split(",") if x.strip()]
+        return ["*"]
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
