@@ -48,10 +48,23 @@ def list_events(
     return {"items": items, "total": total, "page": page, "page_size": page_size}
 
 
+@router.get("/live", response_model=list[EventOut])
+def live_events(
+    limit: int = Query(25, ge=1, le=100),
+    since_id: int | None = Query(None, description="Fetch events with ID greater than this value"),
+    _: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[NormalizedEvent]:
+    query = db.query(NormalizedEvent)
+    if since_id:
+        query = query.filter(NormalizedEvent.id > since_id)
+        return query.order_by(NormalizedEvent.id.asc()).limit(limit).all()
+    return query.order_by(NormalizedEvent.id.desc()).limit(limit).all()
+
+
 @router.get("/{event_id}", response_model=EventOut)
 def get_event(event_id: int, _: User = Depends(get_current_user), db: Session = Depends(get_db)) -> NormalizedEvent:
     event = db.get(NormalizedEvent, event_id)
     if not event:
         raise HTTPException(status_code=404, detail="Event not found")
     return event
-

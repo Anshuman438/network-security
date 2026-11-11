@@ -14,10 +14,14 @@ settings = get_settings()
 
 def create_app() -> FastAPI:
     app = FastAPI(title=settings.app_name, version="1.0.0", docs_url="/api/docs", openapi_url="/api/openapi.json")
+    
+    origins = [str(o).strip() for o in settings.cors_origins]
+    allow_all = "*" in origins or "*" in str(settings.cors_origins)
+
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.cors_origins],
-        allow_credentials=True,
+        allow_origins=["*"] if allow_all else origins,
+        allow_credentials=not allow_all,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -45,4 +49,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-

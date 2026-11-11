@@ -41,6 +41,13 @@ export async function fetchEvents(params: Record<string, string | number | undef
   return data;
 }
 
+export async function fetchLiveEvents(sinceId?: number, limit = 25) {
+  const { data } = await api.get<NormalizedEvent[]>("/events/live", {
+    params: compact({ since_id: sinceId, limit }),
+  });
+  return data;
+}
+
 export async function fetchAlerts(params: Record<string, string | number | undefined>) {
   const { data } = await api.get<Page<Alert>>("/alerts", { params: compact(params) });
   return data;

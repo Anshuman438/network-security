@@ -40,6 +40,12 @@ export function OverviewPage() {
     fetchDashboard()
       .then(setSummary)
       .finally(() => setLoading(false));
+
+    const timer = setInterval(() => {
+      fetchDashboard().then(setSummary).catch(() => {});
+    }, 5000);
+
+    return () => clearInterval(timer);
   }, []);
 
   if (loading) return <LoadingState label="Loading telemetry" />;
@@ -54,6 +60,10 @@ export function OverviewPage() {
             <div className="flex items-center gap-2">
               <span className="rounded-md border border-purple-400/30 bg-purple-500/20 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider text-purple-300">
                 SPECTRE DEFENSE GRID
+              </span>
+              <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                LIVE STREAM (5s)
               </span>
             </div>
             <h2 className="mt-1.5 text-xl font-black tracking-tight text-white">Live SOC Telemetry & Detection Grid</h2>

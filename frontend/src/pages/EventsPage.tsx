@@ -10,8 +10,13 @@ import { formatDate } from "../utils/format";
 export function EventsPage() {
   const [data, setData] = useState<Page<NormalizedEvent> | null>(null);
   const [loading, setLoading] = useState(true);
+  const [liveStreaming, setLiveStreaming] = useState(true);
   const [selected, setSelected] = useState<NormalizedEvent | null>(null);
   const [filters, setFilters] = useState({ q: "", severity: "", event_type: "", source_ip: "", username: "", hostname: "" });
+
+  const hasActiveFilters = Boolean(
+    filters.q || filters.severity || filters.event_type || filters.source_ip || filters.username || filters.hostname
+  );
 
   useEffect(() => {
     setLoading(true);
@@ -20,9 +25,18 @@ export function EventsPage() {
       .finally(() => setLoading(false));
   }, [filters]);
 
-  const hasActiveFilters = Boolean(
-    filters.q || filters.severity || filters.event_type || filters.source_ip || filters.username || filters.hostname
-  );
+  // Live polling: automatically fetch newest events when not actively filtering
+  useEffect(() => {
+    if (!liveStreaming || hasActiveFilters) return;
+    const interval = setInterval(() => {
+      fetchEvents({ page_size: 30 })
+        .then((fresh) => {
+          setData(fresh);
+        })
+        .catch(() => {});
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [liveStreaming, hasActiveFilters]);
 
   function resetFilters() {
     setFilters({ q: "", severity: "", event_type: "", source_ip: "", username: "", hostname: "" });
@@ -81,6 +95,33 @@ export function EventsPage() {
               Reset all filters
             </button>
           </div>
+        )}
+      </div>
+
+      {/* Live Stream Status & Event Count Bar */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setLiveStreaming(!liveStreaming)}
+            className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-bold transition shadow-clay-pill ${
+              liveStreaming
+                ? "border border-emerald-400/40 bg-emerald-500/20 text-emerald-300"
+                : "border border-white/10 bg-white/5 text-zinc-400 hover:text-white"
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${liveStreaming ? "bg-emerald-400 animate-pulse" : "bg-zinc-500"}`} />
+            {liveStreaming ? "LIVE STREAM ACTIVE (4s)" : "STREAM PAUSED"}
+          </button>
+          {hasActiveFilters && (
+            <span className="text-[11px] text-amber-300/80 font-mono">
+              (Live stream paused during filtering)
+            </span>
+          )}
+        </div>
+        {data?.total !== undefined && (
+          <span className="text-xs text-zinc-400 font-mono">
+            Total Indexed: <strong className="text-white">{data.total.toLocaleString()}</strong> events
+          </span>
         )}
       </div>
 
