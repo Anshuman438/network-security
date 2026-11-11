@@ -39,6 +39,11 @@ class IngestRequest(BaseModel):
     raw_lines: list[str] = []
 
 
+class IngestUrlRequest(BaseModel):
+    url: str
+    source_type: str = "auto"
+
+
 class IngestResponse(BaseModel):
     raw_log_id: int
     parsed_count: int

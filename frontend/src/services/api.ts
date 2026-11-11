@@ -9,6 +9,7 @@ import type {
   IngestResponse,
   NormalizedEvent,
   Page,
+  ScanResult,
   ThreatIndicator,
   User,
 } from "../types";
@@ -98,6 +99,16 @@ export async function uploadLogs(file: File, onProgress?: (progress: number) => 
       if (event.total && onProgress) onProgress(Math.round((event.loaded / event.total) * 100));
     },
   });
+  return data;
+}
+
+export async function ingestLogsFromUrl(url: string, sourceType = "auto") {
+  const { data } = await api.post<IngestResponse>("/logs/ingest-url", { url, source_type: sourceType });
+  return data;
+}
+
+export async function scanWebsite(url: string) {
+  const { data } = await api.post<ScanResult>("/scanner/audit", { url });
   return data;
 }
 

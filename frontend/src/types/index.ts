@@ -125,3 +125,49 @@ export interface IngestResponse {
   preview: NormalizedEvent[];
 }
 
+export interface HeaderAuditItem {
+  name: string;
+  present: boolean;
+  value: string | null;
+  status: "PASS" | "FAIL" | "WARNING";
+  description: string;
+  recommendation: string | null;
+}
+
+export interface PathProbeItem {
+  path: string;
+  name: string;
+  risk: "low" | "medium" | "high" | "critical";
+  status_code: number;
+  status: string;
+  description: string;
+}
+
+export interface SslAuditInfo {
+  valid: boolean;
+  protocol?: string | null;
+  days_remaining?: number;
+  expires_at?: string;
+  issuer?: string;
+  subject?: string;
+  reason?: string;
+}
+
+export interface ScanResult {
+  target_url: string;
+  hostname: string;
+  ip_address: string;
+  latency_ms: number;
+  http_status: number;
+  server_banner: string | null;
+  powered_by: string | null;
+  score: number;
+  grade: "A+" | "A" | "B" | "C" | "D" | "F";
+  ssl: SslAuditInfo;
+  headers: HeaderAuditItem[];
+  paths: PathProbeItem[];
+  events_generated: number;
+  timestamp: string;
+}
+
+

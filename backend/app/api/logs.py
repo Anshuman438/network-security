@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from app.auth.dependencies import require_roles
 from app.database.session import get_db
 from app.models import User
-from app.schemas import IngestRequest, IngestResponse
-from app.services import ingest_api_payload, ingest_upload, validate_upload
+from app.schemas import IngestRequest, IngestResponse, IngestUrlRequest
+from app.services import ingest_api_payload, ingest_from_url, ingest_upload, validate_upload
 
 
 router = APIRouter(prefix="/logs", tags=["logs"])
@@ -19,6 +19,15 @@ async def upload_logs(
 ) -> dict:
     content = await validate_upload(file)
     return ingest_upload(db, user_id=user.id, file_name=file.filename or "upload.log", content=content)
+
+
+@router.post("/ingest-url", response_model=IngestResponse, status_code=status.HTTP_201_CREATED)
+def ingest_url(
+    payload: IngestUrlRequest,
+    user: User = Depends(require_roles("admin", "analyst")),
+    db: Session = Depends(get_db),
+) -> dict:
+    return ingest_from_url(db, url=payload.url, source_type=payload.source_type, user_id=user.id)
 
 
 @router.post("/ingest", response_model=IngestResponse, status_code=status.HTTP_201_CREATED)

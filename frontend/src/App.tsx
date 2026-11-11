@@ -8,6 +8,7 @@ import { EventsPage } from "./pages/EventsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { OverviewPage } from "./pages/OverviewPage";
 import { RulesPage } from "./pages/RulesPage";
+import { ScannerPage } from "./pages/ScannerPage";
 import { ThreatIntelPage } from "./pages/ThreatIntelPage";
 import { UploadLogsPage } from "./pages/UploadLogsPage";
 
@@ -22,6 +23,7 @@ export default function App() {
           <Route path="alerts" element={<AlertsPage />} />
           <Route path="rules" element={<RulesPage />} />
           <Route path="upload" element={<UploadLogsPage />} />
+          <Route path="scanner" element={<ScannerPage />} />
           <Route path="threat-intel" element={<ThreatIntelPage />} />
           <Route element={<ProtectedRoute roles={["admin"]} />}>
             <Route path="admin" element={<AdminPage />} />

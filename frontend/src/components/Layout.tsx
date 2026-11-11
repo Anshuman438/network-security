@@ -4,6 +4,7 @@ import {
   Database,
   Eye,
   FileUp,
+  Globe,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -24,6 +25,7 @@ const nav = [
   { to: "/alerts", label: "Alerts", icon: Bell, color: "text-rose-400" },
   { to: "/rules", label: "Rules", icon: SlidersHorizontal, color: "text-violet-400" },
   { to: "/upload", label: "Upload Logs", icon: FileUp, color: "text-emerald-400" },
+  { to: "/scanner", label: "Web Scanner", icon: Globe, color: "text-pink-400" },
   { to: "/threat-intel", label: "Threat Intel", icon: Radar, color: "text-purple-400" },
   { to: "/admin", label: "Admin", icon: Users, color: "text-amber-400", adminOnly: true },
 ];

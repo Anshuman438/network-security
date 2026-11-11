@@ -1,6 +1,9 @@
 import json
 import os
+import urllib.parse
+import urllib.request
 from typing import Any
+from urllib.error import HTTPError, URLError
 
 from fastapi import HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
@@ -42,6 +45,35 @@ def ingest_upload(db: Session, *, user_id: int | None, file_name: str, content: 
     source_type = detect_source_type(file_name)
     text = content.decode("utf-8", errors="replace")
     return ingest_text(db, source_type=source_type, content=text, file_name=file_name, user_id=user_id)
+
+
+def ingest_from_url(db: Session, *, url: str, source_type: str = "auto", user_id: int | None) -> dict[str, Any]:
+    url = url.strip()
+    if not (url.startswith("http://") or url.startswith("https://")):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="URL must start with http:// or https://")
+
+    parsed_url = urllib.parse.urlparse(url)
+    file_name = os.path.basename(parsed_url.path) or "remote_feed.log"
+    if source_type == "auto":
+        source_type = detect_source_type(file_name)
+
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Spectre-SIEM/1.0"})
+        with urllib.request.urlopen(req, timeout=12) as response:
+            content = response.read(settings.max_upload_bytes + 1)
+            if len(content) > settings.max_upload_bytes:
+                raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, detail="Remote log file exceeds the configured size limit")
+            text = content.decode("utf-8", errors="replace")
+    except HTTPError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Remote server returned HTTP {e.code}: {e.reason}")
+    except URLError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Could not connect to remote URL: {e.reason}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Failed to fetch remote log: {str(e)}")
+
+    return ingest_text(db, source_type=source_type, content=text, file_name=f"url:{file_name}", user_id=user_id)
 
 
 def ingest_api_payload(db: Session, *, source_type: str, events: list[dict[str, Any]], raw_lines: list[str], user_id: int | None) -> dict[str, Any]:
